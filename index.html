@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#683c2a">
+  <title>Texas Cowboy</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --felt: #174b3d;
+      --felt-deep: #10392f;
+      --felt-light: #24614d;
+      --ink: #f5f0df;
+      --muted: #b9c8b7;
+      --gold: #e9bd68;
+      --red: #df6259;
+      --blue: #68b8d1;
+      --line: rgb(245 240 223 / 17%);
+      --panel: rgb(7 29 25 / 72%);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+    * { box-sizing: border-box; }
+    html { width: 100%; min-width: 0; overflow-x: clip; }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      color: var(--ink);
+      background-color: var(--felt-deep);
+      background-image: radial-gradient(ellipse at 50% 30%, #28634c 0, #174b3d 48%, #0d3029 100%);
+    }
+    button { font: inherit; }
+    .topbar {
+      min-height: 66px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px clamp(16px, 4vw, 48px);
+      border-bottom: 1px solid var(--line);
+      background: rgb(8 30 26 / 62%);
+    }
+    h1 { margin: 0; color: var(--gold); font-size: 23px; font-weight: 700; }
+    .wallet, .wallet-controls, .chip-row, .actions { display: flex; align-items: center; gap: 9px; }
+    .wallet { font-family: Arial, sans-serif; font-size: 14px; }
+    .wallet b { color: var(--gold); font-size: 16px; }
+    .wrap { width: min(1120px, calc(100% - 32px)); margin: 22px auto 36px; }
+    .arena {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(240px, 1.5fr) minmax(0, 1fr);
+      align-items: center;
+      gap: 16px;
+      padding: 22px;
+      border: 1px solid rgb(239 215 158 / 23%);
+      border-radius: 8px;
+      background: linear-gradient(135deg, rgb(12 49 40 / 62%), rgb(20 67 51 / 45%));
+      box-shadow: inset 0 0 44px rgb(5 25 21 / 28%), 0 14px 35px rgb(0 0 0 / 14%);
+    }
+    .side { min-width: 0; text-align: center; }
+    .side-head { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; font: 700 14px Arial, sans-serif; }
+    .dot { width: 9px; height: 9px; border-radius: 50%; }
+    .red { background: var(--red); }.blue { background: var(--blue); }
+    .tag { max-width: 100%; overflow: hidden; color: var(--gold); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .hand, .community { display: flex; justify-content: center; gap: 7px; min-height: 90px; }
+    .center { text-align: center; }
+    .history-dots { display: flex; justify-content: center; gap: 5px; min-height: 14px; margin: 0 0 9px; }
+    .history-dot { width: 8px; height: 8px; border-radius: 50%; background: #899487; }
+    .history-dot.left { background: var(--red); }.history-dot.right { background: var(--blue); }.history-dot.tie { background: var(--gold); }
+    .history-dot.latest, .recent-dot.latest { outline: 2px solid #171411; outline-offset: 1px; }
+    .community { min-height: 110px; }
+    .result { min-height: 23px; margin-top: 5px; color: var(--muted); font: 13px Arial, sans-serif; }
+    .result b { color: var(--gold); }
+    .playing-card {
+      display: grid;
+      position: relative;
+      flex: 0 1 62px;
+      width: 62px;
+      height: 88px;
+      place-items: center;
+      border: 1px solid #ddd7c5;
+      border-radius: 5px;
+      color: #25251f;
+      background: #fbf8ee;
+      box-shadow: 0 3px 7px rgb(0 0 0 / 28%);
+      font: bold 22px Georgia, serif;
+      animation: appear .2s ease-out both;
+    }
+    .playing-card.red-suit { color: #c3413c; }
+    .playing-card.back {
+      border-color: #e7c477;
+      color: #f3db9f;
+      background: repeating-linear-gradient(45deg, #7f342e, #7f342e 5px, #983f36 5px, #983f36 10px);
+      font-size: 20px;
+    }
+    .playing-card small { position: absolute; top: 5px; left: 6px; font: bold 12px Arial, sans-serif; }
+    .playing-card small.bottom { inset: auto 6px 5px auto; transform: rotate(180deg); }
+    .playing-card.flip-card { perspective: 700px; border: 0; background: transparent; box-shadow: none; animation: none; }
+    .flip-inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; animation: reveal-card .56s cubic-bezier(.2,.72,.25,1) var(--flip-delay, 0ms) both; }
+    .card-side { display: grid; position: absolute; inset: 0; place-items: center; overflow: hidden; border: 1px solid #ddd7c5; border-radius: 5px; box-shadow: 0 3px 7px rgb(0 0 0 / 28%); backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+    .card-back { border-color: #e7c477; color: #f3db9f; background: repeating-linear-gradient(45deg, #7f342e, #7f342e 5px, #983f36 5px, #983f36 10px); font-size: 20px; }
+    .card-front { transform: rotateY(180deg); color: #25251f; background: #fbf8ee; font: bold 22px Georgia, serif; }
+    .card-front.red-suit { color: #c3413c; }
+    @keyframes appear { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes reveal-card { 0% { transform: rotateY(0) scale(.92); } 45% { transform: rotateY(82deg) scale(1.06); } 100% { transform: rotateY(180deg) scale(1); } }
+    .chip-row { flex-wrap: wrap; margin: 14px 0 20px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .chip-label { margin-right: 4px; color: var(--muted); font: 13px Arial, sans-serif; }
+    .btn, .chip, .tile { transition: border-color .15s, background-color .15s, transform .15s; }
+    .btn, .chip {
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 1px solid rgb(245 240 223 / 23%);
+      border-radius: 4px;
+      color: var(--ink);
+      background: rgb(245 240 223 / 7%);
+      cursor: pointer;
+      font: 700 13px Arial, sans-serif;
+    }
+    .btn:hover, .chip:hover { border-color: var(--gold); background-color: rgb(245 240 223 / 13%); }
+    .btn:disabled, .chip:disabled { opacity: .42; cursor: not-allowed; }
+    .btn.sm { min-height: 30px; padding: 5px 9px; }
+    .btn.primary { border-color: #f1cf87; color: #20261d; background: var(--gold); }
+    .btn.primary:hover { background: #f2d28f; }
+    .btn.lg { min-height: 44px; padding: 10px 18px; font-size: 15px; }
+    .chip { min-width: 54px; border-radius: 20px; }
+    .chip.selected { border-color: #ffe09a; color: #fff8e9; background: var(--selected-chip-color, #c7463f); }
+    .zones { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .zone-head { margin: 0 0 9px; color: var(--gold); font-size: 15px; }
+    .bet-grid { display: grid; grid-template-columns: 1fr; gap: 6px; }
+    .bet-tile {
+      display: flex;
+      min-height: 57px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: var(--panel);
+      cursor: pointer;
+      text-align: left;
+    }
+    .bet-tile:hover:not(.locked) { border-color: rgb(233 189 104 / 65%); background: rgb(8 29 25 / 88%); transform: translateY(-1px); }
+    .bet-tile.locked { opacity: .55; cursor: not-allowed; }
+    .bet-title { font-size: 14px; }
+    .bet-meta { display: flex; flex-shrink: 0; flex-direction: column; align-items: flex-end; gap: 3px; font: 12px Arial, sans-serif; }
+    .odd { color: var(--gold); font-weight: 700; }
+    .placed { color: var(--muted); }
+    .bet-chips { display: flex; min-height: 40px; align-items: center; justify-content: center; padding: 1px 0; pointer-events: none; }
+    .bet-chip { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border: 3px dashed #fff2cc; border-radius: 50%; color: #fff8e9; background: radial-gradient(circle, var(--chip-color) 0 54%, #fff0bd 56% 64%, var(--chip-color) 66%); box-shadow: 0 2px 4px rgb(43 24 10 / 48%); font: 800 9px Arial, sans-serif; text-shadow: 0 1px 1px #432315; }
+    .bet-chip.amount-red { --chip-color: #c7463f; }
+    .bet-chip.amount-blue { --chip-color: #4b83bf; }
+    .bet-chip.amount-green { --chip-color: #48a45b; }
+    .bet-chip.amount-black { --chip-color: #3c3733; }
+    .bet-chip.amount-gold { --chip-color: #c99427; }
+    .recent-results { display: flex; min-height: 10px; align-items: center; justify-content: center; gap: 2px; }
+    .recent-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: #aaa18d; }
+    .recent-dot.win { background: #47ae23; }
+    .recent-dot.loss { background: #df5546; }
+    .long-history .bet-meta { width: 100%; align-items: stretch; }
+    .long-history .recent-results { width: 100%; }
+    .long-history .recent-results { justify-content: space-between; gap: 1px; }
+    .outcome-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0 7px; }
+    .outcome-grid .bet-tile { min-height: 65px; justify-content: center; text-align: center; }
+    .outcome-grid .bet-meta { align-items: center; }
+    .outcome-grid .bet-tile { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; align-items: center; justify-items: stretch; text-align: center; }
+    .outcome-grid .bet-title, .outcome-grid .bet-chips, .outcome-grid .bet-meta { width: 100%; justify-self: stretch; text-align: center; }
+    .outcome-grid .bet-meta { display: grid; grid-template-rows: auto auto; justify-items: center; align-items: center; gap: 3px; }
+    .outcome-grid .recent-results { min-height: 10px; justify-content: center; gap: 4px; }
+    .outcome-grid .recent-dot { width: 8px; height: 8px; flex-basis: 8px; background: #8b775a; }
+    .outcome-grid .recent-dot.win { background: #3d9e24; }
+    .outcome-grid .recent-dot.loss { background: #d84e40; }
+    .history-log { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .history-log h2 { margin: 0 0 8px; color: var(--muted); font: 13px Arial, sans-serif; }
+    .history-log ol { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .history-log li { padding: 5px 8px; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); font: 12px Arial, sans-serif; }
+    .start-screen {
+      display: grid;
+      position: fixed;
+      z-index: 5;
+      inset: 0;
+      place-items: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at 50% 42%, rgb(25 77 58 / 86%), rgb(7 26 23 / 97%));
+      transition: opacity .25s, visibility .25s;
+    }
+    .start-screen.hidden { visibility: hidden; opacity: 0; pointer-events: none; }
+    .start-content { max-width: 440px; text-align: center; animation: appear .45s ease-out both; }
+    .start-mark { display: grid; width: 72px; height: 72px; margin: 0 auto 18px; place-items: center; border: 1px solid rgb(233 189 104 / 65%); border-radius: 50%; color: var(--gold); font-size: 34px; }
+    .start-content h2 { margin: 0 0 9px; color: var(--gold); font-size: 38px; }
+    .start-content p { margin: 0 0 25px; color: var(--muted); font: 14px/1.6 Arial, sans-serif; }
+    @media (max-width: 760px) {
+      .arena { grid-template-columns: 1fr 1fr; gap: 18px 8px; padding: 16px 9px; }
+      .center { grid-column: 1 / -1; grid-row: 1; }
+      .side { grid-row: 2; }
+      .zones { gap: 15px; }
+      .playing-card { flex-basis: 49px; width: 49px; height: 70px; font-size: 19px; }
+      .hand { min-height: 72px; }
+      .community { min-height: 83px; }
+    }
+    @media (max-width: 520px) {
+      .topbar { align-items: flex-start; flex-direction: column; gap: 7px; padding: 11px 16px; }
+      .wallet { width: 100%; justify-content: space-between; }
+      .wrap { width: calc(100% - 22px); margin-top: 12px; }
+      .zones { grid-template-columns: 1fr; gap: 16px; }
+      .outcome-grid { gap: 5px; }
+      .outcome-grid .bet-tile { padding: 7px 4px; }
+      .bet-title { font-size: 13px; }
+    }
+    :root {
+      color-scheme: light;
+      --ink: #fff1d5;
+      --muted: #9c7956;
+      --gold: #f6c96e;
+      --red: #dc5544;
+      --blue: #438cc0;
+      --line: #dfbd83;
+      --panel: #f2c982;
+      font-family: Georgia, "Noto Serif Thai", "Times New Roman", serif;
+    }
+    body {
+      padding-bottom: env(safe-area-inset-bottom);
+      color: #5b3828;
+      background: repeating-linear-gradient(8deg, transparent 0 22px, rgb(255 225 174 / 3%) 23px 25px), linear-gradient(115deg, #40251e, #865333 44%, #4a2b22);
+    }
+    .topbar { min-height: 66px; padding: 8px clamp(12px, 4vw, 42px); border-bottom: 3px solid #b47b49; background: linear-gradient(#241b1b, #382321); box-shadow: 0 3px 10px rgb(22 11 8 / 35%); }
+    .top-actions { display: flex; align-items: center; gap: clamp(7px, 2vw, 18px); }
+    .top-actions-right { gap: 8px; }
+    .round-button { display: grid; width: clamp(38px, 9vw, 56px); aspect-ratio: 1; place-items: center; border: 3px solid #f1c779; border-radius: 50%; color: #fff0d0; background: linear-gradient(145deg, #c8873f, #704322); box-shadow: inset 0 0 0 2px rgb(79 40 22 / 65%), 0 2px 4px #170e0d; cursor: pointer; font: 700 21px Arial, sans-serif; }
+    .round-button:active { transform: scale(.96); }
+    .wallet { gap: 5px; color: #f5e3c3; font: 700 12px Arial, sans-serif; white-space: nowrap; }
+    .wallet b { color: #f6c96e; font-size: 14px; }
+    .wrap { width: min(980px, 100%); margin: 0 auto; padding: 10px 12px 18px; }
+    .arena { position: relative; grid-template-columns: minmax(74px, .8fr) minmax(0, 2fr) minmax(74px, .8fr); gap: 5px; min-height: 220px; overflow: hidden; padding: 18px 10px 12px; border: 5px solid #d5a465; border-radius: 44% 44% 18px 18px / 23% 23% 18px 18px; background: radial-gradient(ellipse at 50% 56%, #a84e30 0, #713524 63%, #4b281f 100%); box-shadow: inset 0 0 0 2px #5d321f, inset 0 0 0 7px rgb(239 193 119 / 45%), 0 6px 14px rgb(26 13 9 / 40%); }
+    .side { z-index: 1; align-self: end; padding-bottom: 2px; }
+    .avatar { display: grid; width: 52px; height: 52px; margin: 0 auto 4px; place-items: center; border: 2px solid rgb(255 226 166 / 70%); border-radius: 50%; background: #ad7150; box-shadow: 0 3px 9px rgb(0 0 0 / 25%); font-size: 33px; }
+    .bull-avatar { background: #80604a; }
+    .side-head { gap: 5px; margin-bottom: 4px; color: #fff2d6; font-size: 12px; }
+    .dot { width: 7px; height: 7px; }
+    .tag { display: block; margin-top: 2px; color: #f9d889; font: 11px Arial, sans-serif; }
+    .hand, .community { min-height: 0; gap: 2px; }
+    .center { z-index: 1; align-self: center; min-width: 0; }
+    .table-caption { margin-bottom: 6px; color: #f7d48d; font: 700 10px Arial, sans-serif; }
+    .table-caption span { color: #fff0d0; }
+    .history-dots { gap: 3px; min-height: 9px; margin-bottom: 5px; }
+    .history-dot { width: 7px; height: 7px; }
+    .community { min-height: 72px; gap: 3px; }
+    .playing-card { flex: 1 1 0; width: 0; max-width: 57px; height: clamp(54px, 16vw, 77px); border-radius: 4px; font-size: 17px; }
+    .playing-card small { top: 3px; left: 3px; font-size: 9px; }
+    .playing-card small.bottom { right: 3px; bottom: 3px; }
+    .playing-card.back { font-size: 15px; }
+    .result { min-height: 17px; margin-top: 4px; color: #f6dbad; font-size: 10px; }
+    .result b { color: #fff0d0; }
+    .outcome-grid { gap: 5px; margin: 8px 0 10px; }
+    .bet-tile { min-width: 0; min-height: 88px; flex-direction: column; justify-content: space-between; gap: 5px; padding: 9px 5px 7px; border: 2px solid #ddb477; border-radius: 5px; color: #a17443; background: linear-gradient(145deg, #f5d59d, #edc17d); box-shadow: inset 0 0 0 2px rgb(255 244 216 / 45%), 0 2px 3px rgb(38 23 13 / 18%); text-align: center; }
+    .bet-tile:hover:not(.locked) { border-color: #b77636; background: #f9dda9; transform: translateY(-1px); }
+    .bet-tile.locked { opacity: .58; }
+    .bet-title { display: block; font-size: 14px; font-weight: 700; line-height: 1.25; }
+    .bet-meta { align-items: center; gap: 3px; font-size: 11px; }
+    .odd { color: #bd402d; font-size: 16px; }
+    .placed { max-width: 100%; overflow: hidden; color: #8a6742; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+    .outcome-grid .bet-tile { min-height: 86px; justify-content: space-between; }
+    .outcome-grid .bet-title { color: #c95848; font: 900 22px Arial, sans-serif; }
+    .outcome-grid .bet-tile:nth-child(2) .bet-title { color: #9d7848; font-size: 18px; }
+    .outcome-grid .bet-tile:nth-child(3) .bet-title { color: #438cc0; }
+    .zones { grid-template-columns: .86fr 1.14fr; gap: 7px; }
+    .zones > div { min-width: 0; padding: 8px 6px; border: 3px solid #b17a49; border-radius: 4px; background: linear-gradient(#edc486, #e9bd79); box-shadow: inset 0 0 0 2px rgb(255 232 184 / 50%); }
+    .zone-head { min-height: 36px; margin: 0 0 5px; color: #8e6036; font-size: 14px; font-weight: 800; text-align: center; }
+    .bet-grid { gap: 4px; }
+    .zones > div:first-child .bet-grid { grid-template-columns: 1fr; }
+    .zones > div:last-child .bet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .zones .bet-tile { min-height: 88px; padding: 8px 3px 6px; border-color: #dbb274; background: rgb(255 226 174 / 34%); box-shadow: inset 0 0 0 1px rgb(255 244 216 / 42%); }
+    .zones .bet-title { font-size: 13px; }
+    .zones .bet-meta { gap: 1px; }
+    .zones .odd { font-size: 15px; }
+    .wide-tile { grid-column: 1 / -1; }
+    .mobile-dock { position: sticky; z-index: 4; bottom: 0; padding: 6px 10px calc(7px + env(safe-area-inset-bottom)); border-top: 2px solid #d3a15d; background: linear-gradient(#38231f, #241a19); box-shadow: 0 -4px 12px rgb(24 13 9 / 28%); }
+    .chip-row { justify-content: center; gap: 7px; margin: 0 auto 6px; padding: 0; border: 0; }
+    .chip-label { margin: 0; color: #f1d7ae; font-size: 11px; }
+    .chip { min-width: 43px; min-height: 31px; padding: 5px 9px; border-color: #a87945; color: #ffe6bd; background: #63402b; font-size: 12px; }
+    .chip.selected { border-color: #ffe09a; color: #fff8e9; background: var(--selected-chip-color, #c7463f); }
+    .dock-actions { display: flex; align-items: center; justify-content: center; gap: 7px; }
+    .dock-actions .btn { min-height: 36px; padding: 6px 10px; border-color: #9a7047; color: #ffedcf; background: #62402e; }
+    .dock-actions .btn.primary { flex: 1; max-width: 230px; border-color: #ffd57c; color: #542d1b; background: linear-gradient(#ffdc8e, #e7a944); }
+    .dock-actions .btn:disabled { opacity: .5; }
+    .start-screen { background: radial-gradient(ellipse at 50% 42%, rgb(120 69 42 / 94%), rgb(37 23 21 / 98%)); }
+    .start-mark, .start-content h2 { border-color: #f1c779; color: #f6cb72; }
+    .help-dialog { width: min(360px, calc(100% - 32px)); border: 3px solid #d3a15d; border-radius: 8px; color: #5b3828; background: #f2d09a; box-shadow: 0 12px 40px rgb(0 0 0 / 42%); }
+    .help-dialog::backdrop { background: rgb(20 12 10 / 72%); }
+    .help-dialog h2 { margin: 10px 0; color: #8e542b; font-size: 22px; }
+    .help-dialog p { font: 14px/1.5 Arial, sans-serif; }
+    .dialog-close { float: right; border: 0; color: #784b2e; background: transparent; cursor: pointer; font-size: 25px; }
+    .history-dialog ol { max-height: 55dvh; overflow-y: auto; margin: 8px 0 0; padding: 0 0 0 28px; }
+    .history-dialog li { padding: 7px 4px; border-bottom: 1px solid #d7b883; font: 13px Arial, sans-serif; }
+    .top-up-form label { display: block; margin: 12px 0 5px; color: #68472e; font: 700 13px Arial, sans-serif; }
+    .top-up-form input { width: 100%; min-height: 44px; padding: 8px 12px; border: 2px solid #b7824d; border-radius: 4px; color: #432d21; background: #fff6e6; font: 700 20px Arial, sans-serif; }
+    .top-up-form input:focus { outline: 3px solid rgb(231 169 68 / 45%); }
+    .top-up-error { min-height: 19px; margin: 5px 0; color: #ae3729; font: 12px Arial, sans-serif; }
+    .top-up-actions { display: flex; justify-content: flex-end; gap: 8px; }
+    .top-up-actions .btn:not(.primary) { color: #68472e; background: #e7c79a; }
+    @media (min-width: 761px) {
+      .wrap { padding-top: 20px; padding-bottom: 14px; }
+      .arena { min-height: 280px; }
+      .avatar { width: 72px; height: 72px; font-size: 46px; }
+      .community { min-height: 100px; }
+      .playing-card { height: 94px; }
+      .zones { gap: 14px; }
+      .zones > div { padding: 12px; }
+      .zones > div:first-child .bet-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .zones > div:first-child .bet-tile:first-child { grid-column: 1 / -1; }
+      .mobile-dock { position: static; padding: 10px 16px; }
+      .chip-row { margin-bottom: 8px; }
+    }
+    @media (max-width: 520px) {
+      html, body { width: 100%; height: 100%; overflow: clip; }
+      body { display: flex; min-height: 100vh; min-height: 100dvh; height: 100vh; height: 100dvh; flex-direction: column; }
+      .topbar { min-height: 56px; align-items: center; flex-direction: row; gap: 6px; padding: 6px 9px; }
+      .top-actions, .top-actions-right { gap: 6px; }
+      .top-actions-right .round-button:last-child { display: none; }
+      .round-button { width: 39px; border-width: 2px; font-size: 18px; }
+      .wrap { width: 100%; max-width: 100%; min-width: 0; flex: 1 1 auto; margin: 0; padding: 6px 7px 4px; }
+      .arena { min-height: 170px; grid-template-columns: minmax(67px, .72fr) minmax(0, 1.85fr) minmax(67px, .72fr); gap: 2px; padding: 10px 5px 7px; border-width: 4px; }
+      .side, .center { grid-row: auto; }
+      .center { grid-column: auto; }
+      .avatar { width: 39px; height: 39px; font-size: 26px; }
+      .side-head { flex-wrap: wrap; font-size: 10px; }
+      .hand { min-height: 52px; gap: 1px; }
+      .hand .playing-card { flex-basis: 34px; width: 34px; height: 51px; font-size: 14px; }
+      .hand .playing-card small { font-size: 8px; }
+      .community { min-height: 62px; gap: 2px; }
+      .community .playing-card { height: 59px; font-size: 15px; }
+      .table-caption { font-size: 9px; }
+      .outcome-grid { margin: 5px 0 7px; }
+      .outcome-grid .bet-tile { min-height: 68px; padding: 4px 3px; gap: 1px; }
+      .outcome-grid .bet-title { font-size: 16px; }
+      .zones { grid-template-columns: .84fr 1.16fr; gap: 5px; }
+      .zones > div { padding: 4px 3px; border-width: 2px; }
+      .zone-head { min-height: 28px; margin-bottom: 3px; font-size: 12px; }
+      .zones .bet-tile { min-height: 68px; padding: 4px 2px 3px; gap: 2px; }
+      .zones .bet-title { font-size: 12px; }
+      .zones .odd { font-size: 14px; }
+      .long-history .bet-title { font-size: 12px; }
+      .long-history .odd { font-size: 14px; }
+      .zones .placed { font-size: 9px; }
+      .bet-chips { min-height: 22px; }
+      .bet-chip { width: 21px; height: 21px; flex-basis: 21px; border-width: 2px; font-size: 7px; }
+      .bet-meta { gap: 1px; }
+      .recent-results { min-height: 8px; gap: 1px; }
+      .recent-dot { width: 6px; height: 6px; flex-basis: 6px; }
+      .mobile-dock { position: fixed; right: 0; bottom: 0; left: 0; width: 100%; padding-right: max(6px, env(safe-area-inset-right)); padding-bottom: calc(6px + env(safe-area-inset-bottom)); padding-left: max(6px, env(safe-area-inset-left)); }
+      .chip-row { gap: 5px; }
+      .chip { min-width: 39px; min-height: 29px; padding: 4px 7px; }
+      .dock-actions { gap: 5px; }
+      .dock-actions .btn { min-height: 34px; padding: 5px 8px; font-size: 12px; }
+    }
+    @media (max-width: 520px) and (min-height: 761px) {
+      body { display: grid; grid-template-rows: 56px minmax(0, 1fr) auto; }
+      .topbar { grid-row: 1; min-height: 56px; }
+      .wrap { grid-row: 2; display: flex; width: 100%; height: auto; min-height: 0; flex: none; flex-direction: column; margin: 0; padding: 6px 7px 4px; }
+      .arena { flex: 0 0 170px; }
+      .outcome-grid { flex: 0 0 94px; }
+      .zones { min-height: 0; flex: 1 1 auto; align-items: stretch; }
+      .zones > div { display: flex; min-height: 0; flex-direction: column; }
+      .zones .bet-grid { min-height: 0; flex: 1 1 auto; grid-template-rows: repeat(3, minmax(0, 1fr)); }
+      .zones .bet-tile { min-height: 0; }
+      .mobile-dock { grid-row: 3; position: static; width: 100%; }
+    }
+    @media (max-width: 520px) and (max-height: 760px) {
+      .wrap { display: flex; height: calc(100vh - 56px - 68px); height: calc(100dvh - 56px - 68px); min-height: 0; flex: 0 0 auto; flex-direction: column; padding-top: 5px; padding-bottom: 5px; }
+      .arena { min-height: 156px; padding-top: 7px; padding-bottom: 5px; }
+      .avatar { width: 32px; height: 32px; font-size: 21px; }
+      .hand { min-height: 43px; }
+      .hand .playing-card { height: 42px; }
+      .community { min-height: 49px; }
+      .community .playing-card { height: 48px; }
+      .outcome-grid { flex: 0 0 61px; margin-top: 5px; margin-bottom: 6px; }
+      .outcome-grid .bet-tile { height: 61px; min-height: 0; padding: 3px 2px; gap: 1px; }
+      .outcome-grid .bet-title { font-size: 16px; }
+      .zones { min-height: 0; flex: 1; gap: 3px; }
+      .zones > div { min-height: 0; padding: 4px 3px; }
+      .zone-head { min-height: 26px; margin-bottom: 3px; font-size: 11px; }
+      .bet-grid { gap: 3px; }
+      .zones .bet-tile { min-height: 0; padding: 4px 2px 3px; }
+      .zones .bet-title { font-size: 11px; }
+      .zones .odd { font-size: 13px; }
+      .zones .placed { font-size: 8px; }
+      .bet-chips { min-height: 17px; }
+      .bet-chip { width: 16px; height: 16px; flex-basis: 16px; font-size: 6px; }
+      .zones .bet-grid { height: calc(100% - 29px); min-height: 0; grid-template-rows: repeat(3, minmax(0, 1fr)); }
+      .mobile-dock { flex-shrink: 0; padding-top: 4px; padding-bottom: 4px; }
+      .chip-row { margin-bottom: 3px; }
+      .chip { min-height: 25px; }
+      .dock-actions .btn { min-height: 30px; }
+    }
+    @media (max-width: 520px) and (max-height: 600px) {
+      .arena { min-height: 138px; padding-top: 4px; padding-bottom: 3px; }
+      .avatar { width: 27px; height: 27px; margin-bottom: 2px; font-size: 18px; }
+      .side-head { margin-bottom: 1px; font-size: 9px; }
+      .hand { min-height: 36px; }
+      .hand .playing-card { height: 35px; }
+      .community { min-height: 41px; }
+      .community .playing-card { height: 40px; }
+      .table-caption { margin-bottom: 2px; font-size: 8px; }
+      .history-dots { margin-bottom: 2px; }
+      .result { min-height: 12px; margin-top: 1px; font-size: 8px; }
+      .outcome-grid { flex-basis: 54px; }
+      .outcome-grid .bet-tile { height: 54px; min-height: 0; padding: 2px; gap: 0; }
+      .outcome-grid .bet-title { font-size: 14px; }
+      .outcome-grid .bet-tile:nth-child(2) .bet-title { font-size: 13px; }
+      .outcome-grid .bet-chips { min-height: 10px; }
+      .outcome-grid .bet-chip { width: 10px; height: 10px; flex-basis: 10px; font-size: 5px; }
+      .outcome-grid .bet-meta { gap: 0; line-height: 1; }
+      .outcome-grid .odd { font-size: 12px; line-height: 1; }
+      .outcome-grid .recent-results { min-height: 7px; gap: 3px; }
+      .outcome-grid .recent-dot { width: 6px; height: 6px; flex-basis: 6px; }
+      .outcome-grid .placed { font-size: 8px; }
+      .zones > div { min-height: 0; padding: 3px 2px; }
+      .zones .bet-tile { min-height: 0; padding: 1px; gap: 0; }
+      .zones .bet-chips { min-height: 12px; }
+      .zones .bet-chip { width: 12px; height: 12px; flex-basis: 12px; border-width: 1px; font-size: 6px; }
+      .zones .bet-meta { gap: 0; line-height: 1; }
+      .zones .recent-results { min-height: 4px; }
+      .recent-results { min-height: 6px; gap: 1px; }
+      .recent-dot { width: 4px; height: 4px; flex-basis: 4px; }
+      .zones .bet-grid { height: calc(100% - 24px); min-height: 0; grid-template-rows: repeat(3, minmax(0, 1fr)); }
+      .zones .bet-title { font-size: 11px; }
+      .zones .odd { font-size: 13px; }
+      .zones .placed { font-size: 7px; }
+    }
+    @media (orientation: landscape) and (max-height: 600px) {
+      html, body { width: 100%; height: 100%; overflow: hidden; }
+      body { display: grid; min-height: 0; height: 100vh; height: 100dvh; grid-template-rows: 48px minmax(0, 1fr) auto; }
+      .topbar { grid-row: 1; min-height: 0; height: 48px; padding: 3px 10px; }
+      .round-button { width: 36px; border-width: 2px; font-size: 17px; }
+      .wrap { grid-row: 2; display: grid; width: 100%; min-height: 0; height: 100%; grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); grid-template-rows: minmax(0, .85fr) minmax(0, 1.15fr); gap: 4px; margin: 0; padding: 4px; }
+      .arena { grid-column: 1; grid-row: 1; min-height: 0; height: 100%; grid-template-columns: minmax(35px, .7fr) minmax(0, 1.5fr) minmax(35px, .7fr); gap: 2px; padding: 4px; border-width: 3px; border-radius: 25px; }
+      .avatar { width: 28px; height: 28px; margin-bottom: 1px; font-size: 19px; }
+      .side-head { margin-bottom: 1px; font-size: 9px; }
+      .hand { min-height: 36px; gap: 1px; }
+      .hand .playing-card { flex-basis: 25px; width: 25px; height: 35px; font-size: 11px; }
+      .hand .playing-card small { font-size: 6px; }
+      .center { min-width: 0; }
+      .table-caption { margin-bottom: 2px; font-size: 8px; }
+      .history-dots { min-height: 6px; margin-bottom: 2px; }
+      .history-dot { width: 5px; height: 5px; }
+      .community { min-height: 41px; gap: 1px; }
+      .community .playing-card { height: 40px; font-size: 11px; }
+      .community .playing-card small { font-size: 6px; }
+      .result { min-height: 11px; margin-top: 1px; font-size: 8px; }
+      .tag { margin-top: 0; font-size: 8px; }
+      .outcome-grid { grid-column: 1; grid-row: 2; min-height: 0; gap: 3px; margin: 0; }
+      .outcome-grid .bet-tile { min-height: 0; height: 100%; padding: 3px 2px; }
+      .outcome-grid .bet-title { font-size: 12px; }
+      .outcome-grid .bet-tile:nth-child(2) .bet-title { font-size: 11px; }
+      .outcome-grid .odd { font-size: 12px; }
+      .outcome-grid .placed { font-size: 8px; }
+      .zones { grid-column: 2; grid-row: 1 / 3; min-height: 0; height: 100%; grid-template-columns: .84fr 1.16fr; gap: 3px; }
+      .zones > div { min-height: 0; padding: 3px; border-width: 2px; }
+      .zone-head { min-height: 21px; margin-bottom: 2px; font-size: 9px; }
+      .zones > div:first-child .bet-grid, .zones > div:last-child .bet-grid { height: calc(100% - 23px); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 2px; }
+      .zones .bet-tile { min-height: 0; padding: 2px; }
+      .zones .bet-title { font-size: 9px; }
+      .zones .odd { font-size: 11px; }
+      .zones .placed { font-size: 8px; }
+      .wide-tile { grid-column: 1 / -1; }
+      .mobile-dock { grid-row: 3; position: static; width: 100%; padding: 3px 6px; }
+      .chip-row { gap: 4px; margin-bottom: 2px; }
+      .chip { min-width: 34px; min-height: 23px; padding: 2px 5px; font-size: 10px; }
+      .chip-label { font-size: 9px; }
+      .dock-actions { gap: 4px; }
+      .dock-actions .btn { min-width: 32px; min-height: 30px; padding: 3px 6px; font-size: 10px; }
+    }
+    @media (min-width: 761px) and (min-height: 601px) and (max-height: 900px) and (orientation: landscape) {
+      body { display: flex; height: 100vh; height: 100dvh; min-height: 0; flex-direction: column; overflow: clip; }
+      .topbar { flex: 0 0 58px; min-height: 58px; }
+      .wrap { width: min(980px, 100%); min-height: 0; flex: 1; margin: 0 auto; padding: 6px 12px; }
+      .arena { min-height: 0; height: 27%; padding: 8px; }
+      .avatar { width: 48px; height: 48px; font-size: 31px; }
+      .community { min-height: 57px; }
+      .playing-card { height: 56px; }
+      .hand { min-height: 55px; }
+      .outcome-grid { margin: 4px 0 6px; }
+      .outcome-grid .bet-tile { min-height: 60px; }
+      .zones { height: 58%; gap: 8px; }
+      .zones > div { padding: 5px; }
+      .zone-head { min-height: 24px; margin-bottom: 3px; font-size: 12px; }
+      .zones .bet-tile { min-height: 0; padding: 3px; }
+      .zones .bet-title { font-size: 11px; }
+      .zones .odd { font-size: 13px; }
+      .zones .placed { font-size: 9px; }
+      .mobile-dock { flex: 0 0 auto; padding: 4px 10px; }
+      .chip-row { margin-bottom: 3px; }
+      .chip { min-height: 26px; }
+      .dock-actions .btn { min-height: 30px; }
+    }
+    @media (min-width: 761px) and (min-height: 901px) {
+      body { display: flex; min-height: 100vh; min-height: 100dvh; flex-direction: column; }
+      .wrap { flex: 1; }
+      .mobile-dock { flex-shrink: 0; }
+    }
+    body.scaled-mobile {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      place-items: center;
+      overflow: hidden;
+      background: #211613;
+      background-image: radial-gradient(ellipse at center, #503022, #211613 78%);
+    }
+    body.scaled-mobile .app-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      display: grid;
+      width: 390px;
+      height: 844px;
+      grid-template-rows: 56px minmax(0, 1fr) 83px;
+      overflow: hidden;
+      background: linear-gradient(115deg, #40251e, #865333 44%, #4a2b22);
+      transform: translate(-50%, -50%) scale(var(--app-scale, 1));
+      transform-origin: center;
+    }
+    body.scaled-mobile .topbar {
+      grid-row: 1;
+      min-height: 56px;
+      align-items: center;
+      flex-direction: row;
+      gap: 6px;
+      padding: 6px 9px;
+    }
+    body.scaled-mobile .top-actions,
+    body.scaled-mobile .top-actions-right { gap: 6px; }
+    body.scaled-mobile .top-actions-right .round-button:last-child { display: none; }
+    body.scaled-mobile .round-button { width: 39px; border-width: 2px; font-size: 18px; }
+    body.scaled-mobile .wrap {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      min-height: 0;
+      height: auto;
+      grid-row: 2;
+      flex: none;
+      flex-direction: column;
+      margin: 0;
+      padding: 6px 7px 4px;
+    }
+    body.scaled-mobile .arena {
+      min-height: 0;
+      height: 170px;
+      flex: 0 0 170px;
+      grid-template-columns: minmax(67px, .72fr) minmax(0, 1.85fr) minmax(67px, .72fr);
+      gap: 2px;
+      padding: 10px 5px 7px;
+      border-width: 4px;
+    }
+    body.scaled-mobile .side { align-self: end; padding-bottom: 2px; }
+    body.scaled-mobile .side,
+    body.scaled-mobile .center { grid-row: auto; }
+    body.scaled-mobile .center { grid-column: auto; }
+    body.scaled-mobile .avatar { width: 39px; height: 39px; font-size: 26px; }
+    body.scaled-mobile .side-head { flex-wrap: wrap; gap: 5px; margin-bottom: 4px; font-size: 10px; }
+    body.scaled-mobile .tag { margin-top: 2px; font-size: 11px; }
+    body.scaled-mobile .hand { min-height: 52px; gap: 1px; }
+    body.scaled-mobile .hand .playing-card { width: 34px; height: 51px; flex-basis: 34px; font-size: 14px; }
+    body.scaled-mobile .hand .playing-card small { font-size: 8px; }
+    body.scaled-mobile .community { min-height: 62px; gap: 2px; }
+    body.scaled-mobile .community .playing-card { height: 59px; font-size: 15px; }
+    body.scaled-mobile .table-caption { font-size: 9px; }
+    body.scaled-mobile .result { min-height: 17px; margin-top: 4px; font-size: 10px; }
+    body.scaled-mobile .outcome-grid { min-height: 0; flex: 0 0 94px; margin: 5px 0 7px; }
+    body.scaled-mobile .outcome-grid .bet-tile { min-height: 0; height: auto; padding: 4px 3px; gap: 1px; }
+    body.scaled-mobile .outcome-grid .bet-title { font-size: 16px; }
+    body.scaled-mobile .outcome-grid .bet-tile:nth-child(2) .bet-title { font-size: 18px; }
+    body.scaled-mobile .outcome-grid .bet-meta { gap: 3px; line-height: normal; }
+    body.scaled-mobile .outcome-grid .odd { font-size: 16px; line-height: normal; }
+    body.scaled-mobile .outcome-grid .recent-results { min-height: 10px; gap: 4px; }
+    body.scaled-mobile .outcome-grid .recent-dot { width: 8px; height: 8px; flex-basis: 8px; }
+    body.scaled-mobile .zones {
+      min-height: 0;
+      flex: 1 1 auto;
+      grid-template-columns: .84fr 1.16fr;
+      align-items: stretch;
+      gap: 5px;
+    }
+    body.scaled-mobile .zones > div { display: flex; min-width: 0; min-height: 0; flex-direction: column; padding: 4px 3px; border-width: 2px; }
+    body.scaled-mobile .zone-head { min-height: 28px; margin: 0 0 3px; font-size: 12px; }
+    body.scaled-mobile .zones .bet-grid { display: grid; min-height: 0; flex: 1 1 auto; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 3px; }
+    body.scaled-mobile .zones > div:first-child .bet-grid { grid-template-columns: 1fr; }
+    body.scaled-mobile .zones > div:first-child .bet-tile:first-child { grid-column: 1 / -1; }
+    body.scaled-mobile .zones .bet-tile { min-height: 0; padding: 4px 2px 3px; gap: 2px; }
+    body.scaled-mobile .zones .bet-title { font-size: 12px; }
+    body.scaled-mobile .zones .odd { font-size: 14px; }
+    body.scaled-mobile .long-history .bet-title { font-size: 12px; }
+    body.scaled-mobile .long-history .odd { font-size: 14px; }
+    body.scaled-mobile .zones .bet-chips { min-height: 22px; }
+    body.scaled-mobile .zones .bet-chip { width: 21px; height: 21px; flex-basis: 21px; font-size: 7px; }
+    body.scaled-mobile .zones .bet-meta { gap: 1px; }
+    body.scaled-mobile .zones .recent-results { min-height: 8px; gap: 1px; }
+    body.scaled-mobile .zones .recent-dot { width: 6px; height: 6px; flex-basis: 6px; }
+    body.scaled-mobile .wide-tile { grid-column: 1 / -1; }
+    body.scaled-mobile .mobile-dock {
+      position: static;
+      grid-row: 3;
+      width: 100%;
+      min-width: 0;
+      padding: 5px 6px calc(5px + env(safe-area-inset-bottom));
+    }
+    body.scaled-mobile .chip-row { gap: 5px; margin-bottom: 4px; }
+    body.scaled-mobile .chip { min-width: 39px; min-height: 29px; padding: 4px 7px; }
+    body.scaled-mobile .dock-actions { gap: 5px; }
+    body.scaled-mobile .dock-actions .btn { min-height: 34px; padding: 5px 8px; font-size: 12px; }
+    body.scaled-mobile .start-screen { position: absolute; inset: 0; }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app-frame" id="appFrame">
+  <header class="topbar">
+    <nav class="top-actions" aria-label="เมนูเกม">
+      <button class="round-button" id="betsJump" type="button" title="เดิมพัน" aria-label="เดิมพัน">☷</button>
+      <button class="round-button" id="historyJump" type="button" title="สถิติ" aria-label="สถิติ">▥</button>
+    </nav>
+    <div class="top-actions top-actions-right">
+      <span class="wallet">ชิป <b id="chips">1,000</b></span>
+      <button class="round-button" id="helpButton" type="button" title="วิธีเล่น" aria-label="วิธีเล่น">?</button>
+      <button class="round-button" id="fullscreenButton" type="button" title="เต็มจอ" aria-label="เต็มจอ">⛶</button>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="arena" aria-label="โต๊ะโป๊กเกอร์">
+      <div class="side">
+        <div class="avatar cowboy-avatar" aria-hidden="true">🤠</div>
+        <div class="side-head"><span class="dot red"></span><span>คาวบอย</span></div>
+        <div class="hand" id="leftHand" aria-label="ไพ่คาวบอย"></div>
+        <span class="tag" id="leftRank">รอเริ่ม</span>
+      </div>
+      <div class="center">
+        <div class="table-caption">TEXAS COWBOY <span>·</span> โต๊ะทดลอง</div>
+        <div class="history-dots" id="history" aria-label="ผลย้อนหลัง"></div>
+        <div class="community" id="board" aria-label="ไพ่กองกลาง"></div>
+        <div class="result">ผล: <b id="result">กด Start เพื่อเริ่มเล่น</b></div>
+      </div>
+      <div class="side">
+        <div class="avatar bull-avatar" aria-hidden="true">🐂</div>
+        <div class="side-head"><span class="dot blue"></span><span>กระทิง</span></div>
+        <div class="hand" id="rightHand" aria-label="ไพ่กระทิง"></div>
+        <span class="tag" id="rightRank">รอเริ่ม</span>
+      </div>
+    </section>
+
+    <section class="outcome-grid" aria-label="เดิมพันผู้ชนะ">
+      <button class="bet-tile" data-bet="LEFT_WIN" type="button"><span class="bet-title">คาวบอยชนะ</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×2</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+      <button class="bet-tile" data-bet="TIE" type="button"><span class="bet-title">เสมอ</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×20</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+      <button class="bet-tile" data-bet="RIGHT_WIN" type="button"><span class="bet-title">กระทิงชนะ</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×2</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+    </section>
+
+    <section class="zones" id="zones">
+      <div>
+        <h2 class="zone-head">ไพ่เริ่มต้น</h2>
+        <div class="bet-grid">
+          <button class="bet-tile" data-bet="ANY_HOLE_SUITED_OR_CONN" type="button"><span class="bet-title">สีเดียวกัน /<br>ไพ่เรียง</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×1.66</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+          <button class="bet-tile" data-bet="ANY_HOLE_PAIR" type="button"><span class="bet-title">1 คู่</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×8.5</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+          <button class="bet-tile long-history" data-bet="ANY_HOLE_AA" type="button"><span class="bet-title">AA</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×100</span><span class="recent-results" aria-label="ผล 12 ครั้งล่าสุด"></span></span></button>
+        </div>
+      </div>
+      <div>
+        <h2 class="zone-head">ไพ่ของผู้ชนะ</h2>
+        <div class="bet-grid">
+          <button class="bet-tile" data-bet="WIN_HIGH_OR_PAIR" type="button"><span class="bet-title">ไพ่สูง<br>1 คู่</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×2.2</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+          <button class="bet-tile" data-bet="WIN_TWO_PAIR" type="button"><span class="bet-title">2 คู่</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×3.1</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+          <button class="bet-tile" data-bet="WIN_TRIPS_STRAIGHT_FLUSH" type="button"><span class="bet-title">ตอง · สเตรท<br>ฟลัช</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×4.7</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+          <button class="bet-tile" data-bet="WIN_FULL_HOUSE" type="button"><span class="bet-title">ฟูลเฮาส์</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×20</span><span class="recent-results" aria-label="ผล 6 ครั้งล่าสุด"></span></span></button>
+          <button class="bet-tile wide-tile long-history" data-bet="ANY_FOUR_OR_SF_OR_ROYAL" type="button"><span class="bet-title">โฟร์การ์ด · สเตรทฟลัช<br>รอยัลสเตรทฟลัช</span><span class="bet-chips" aria-label="ชิปเดิมพัน"></span><span class="bet-meta"><span class="odd">×248</span><span class="recent-results" aria-label="ผล 24 ครั้งล่าสุด"></span></span></button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="mobile-dock" aria-label="ตัวควบคุมเกม">
+    <div class="chip-row" aria-label="เลือกชิปเดิมพัน">
+      <span class="chip-label">ชิป</span>
+      <button class="chip selected" data-v="50" type="button">50</button>
+      <button class="chip" data-v="100" type="button">100</button>
+      <button class="chip" data-v="500" type="button">500</button>
+      <button class="chip" data-v="1000" type="button">1k</button>
+      <button class="chip" data-v="10000" type="button">10k</button>
+    </div>
+    <div class="dock-actions">
+      <button class="btn" id="undo" type="button" title="ยกเลิกเดิมพันล่าสุด">↶</button>
+      <button class="btn" id="clearBets" type="button">ล้าง</button>
+      <button class="btn primary deal-button" id="deal" type="button" disabled>แจกไพ่ / เปิดผล</button>
+      <button class="btn sm" id="add1k" type="button">+1k</button>
+      <button class="btn sm" id="add10k" type="button">+10k</button>
+    </div>
+  </footer>
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-content">
+      <div class="start-mark" aria-hidden="true">♠</div>
+      <h2>Texas Cowboy</h2>
+      <p>เปิดโต๊ะแล้วเล่นได้ทันที<br>เกมทำงานในเบราว์เซอร์ ไม่ต้องเชื่อมต่อเซิร์ฟเวอร์</p>
+      <button class="btn primary lg" id="start" type="button">Start</button>
+    </div>
+  </div>
+  </div>
+
+  <dialog class="help-dialog" id="helpDialog">
+    <form method="dialog">
+      <button class="dialog-close" aria-label="ปิด">×</button>
+    </form>
+    <h2>วิธีเล่น</h2>
+    <p>เลือกมูลค่าชิป แล้วแตะช่องเดิมพันที่ต้องการ จากนั้นกดแจกไพ่เพื่อดูผล</p>
+    <p>ชิปเป็นคะแนนทดลองในเครื่อง ไม่มีเงินจริงหรือการเชื่อมต่อเซิร์ฟเวอร์</p>
+    <button class="btn primary" type="button" id="helpOk">เข้าใจแล้ว</button>
+  </dialog>
+  <dialog class="help-dialog history-dialog" id="historyDialog">
+    <form method="dialog">
+      <button class="dialog-close" aria-label="ปิด">×</button>
+    </form>
+    <h2>ประวัติการเล่น</h2>
+    <ol id="log" aria-live="polite"></ol>
+  </dialog>
+  <dialog class="help-dialog top-up-dialog" id="topUpDialog">
+    <h2>เพิ่มชิป</h2>
+    <p>กรอกรหัสผ่านเพื่อยืนยัน</p>
+    <form class="top-up-form" id="topUpForm">
+      <label for="topUpPassword">รหัสผ่าน</label>
+      <input id="topUpPassword" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-describedby="topUpError">
+      <p class="top-up-error" id="topUpError" aria-live="polite"></p>
+      <div class="top-up-actions">
+        <button class="btn" id="cancelTopUp" type="button">ยกเลิก</button>
+        <button class="btn primary" type="submit">ยืนยัน</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      const frame = document.getElementById("appFrame");
+      const portraitWidth = 390;
+      const portraitHeight = 844;
+
+      function fitMobileFrame() {
+        const viewport = window.visualViewport;
+        const width = viewport?.width || window.innerWidth;
+        const height = viewport?.height || window.innerHeight;
+        const landscapePhone = width > height && width <= 1200 && height <= 700;
+        const useFrame = width <= 600 || landscapePhone;
+        document.body.classList.toggle("scaled-mobile", useFrame);
+
+        if (useFrame) {
+          frame.style.setProperty("--app-scale", String(Math.min(width / portraitWidth, height / portraitHeight)));
+        } else {
+          frame.style.removeProperty("--app-scale");
+        }
+      }
+
+      window.addEventListener("resize", fitMobileFrame, { passive: true });
+      window.addEventListener("orientationchange", fitMobileFrame, { passive: true });
+      window.visualViewport?.addEventListener("resize", fitMobileFrame, { passive: true });
+      fitMobileFrame();
+    })();
+  </script>
+
+  <script>
+    (() => {
+      const suits = ["♠", "♥", "♦", "♣"];
+      const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+      const betOdds = {
+        LEFT_WIN: 2, TIE: 20, RIGHT_WIN: 2,
+        ANY_HOLE_SUITED_OR_CONN: 1.66, ANY_HOLE_PAIR: 8.5, ANY_HOLE_AA: 100,
+        WIN_HIGH_OR_PAIR: 2.2, WIN_TWO_PAIR: 3.1, WIN_TRIPS_STRAIGHT_FLUSH: 4.7,
+        WIN_FULL_HOUSE: 20, ANY_FOUR_OR_SF_OR_ROYAL: 248
+      };
+      const handNames = ["ไพ่สูง", "หนึ่งคู่", "สองคู่", "ตอง", "สเตรท", "ฟลัช", "ฟูลเฮาส์", "โฟร์การ์ด", "สเตรทฟลัช"];
+      const bets = new Map();
+      const history = [];
+      const betHistory = new Map(Object.keys(betOdds).map((type) => [type, []]));
+      const betHistoryLimits = { ANY_HOLE_AA: 12, ANY_FOUR_OR_SF_OR_ROYAL: 24 };
+      const betActions = [];
+      let chips = 1000;
+      let selectedChip = 50;
+      let gameStarted = false;
+      let isRevealing = false;
+      let pendingTopUp = 0;
+      let round = 0;
+      let lastDeal = null;
+
+      const el = (id) => document.getElementById(id);
+      const format = (amount) => Math.floor(amount).toLocaleString("th-TH");
+      const setText = (id, value) => { el(id).textContent = value; };
+      const updateWallet = () => setText("chips", format(chips));
+      const amountTier = (amount) => amount >= 10000 ? "gold" : amount >= 1000 ? "black" : amount >= 500 ? "green" : amount >= 100 ? "blue" : "red";
+      const amountChipColor = (amount) => ({ red: "#c7463f", blue: "#4b83bf", green: "#48a45b", black: "#3c3733", gold: "#c99427" })[amountTier(amount)];
+      const compactAmount = (amount) => amount >= 1000000 ? `${Number((amount / 1000000).toFixed(1))}m` : amount >= 1000 ? `${Number((amount / 1000).toFixed(1))}k` : format(amount);
+
+      function makeDeck() {
+        return suits.flatMap((suit) => ranks.map((rank, index) => ({ suit, rank, value: index + 2 })));
+      }
+
+      function shuffle(deck) {
+        for (let index = deck.length - 1; index > 0; index -= 1) {
+          const swap = Math.floor(Math.random() * (index + 1));
+          [deck[index], deck[swap]] = [deck[swap], deck[index]];
+        }
+        return deck;
+      }
+
+      function renderCard(card, hidden = false, delay = 0) {
+        if (hidden || !card) return '<div class="playing-card back" aria-label="ไพ่คว่ำ">★</div>';
+        const red = card.suit === "♥" || card.suit === "♦";
+        return `<div class="playing-card flip-card" aria-label="ไพ่ ${card.rank}${card.suit}"><div class="flip-inner" style="--flip-delay:${delay}ms"><div class="card-side card-back">★</div><div class="card-side card-front${red ? " red-suit" : ""}"><small>${card.rank}${card.suit}</small>${card.suit}<small class="bottom">${card.rank}${card.suit}</small></div></div></div>`;
+      }
+
+      function renderCards(target, cards, hidden = false, startDelay = 0, stagger = 85) {
+        el(target).innerHTML = cards.map((card, index) => renderCard(card, hidden, startDelay + index * stagger)).join("");
+      }
+
+      function combinations(items, size) {
+        const result = [];
+        function collect(start, chosen) {
+          if (chosen.length === size) { result.push(chosen); return; }
+          for (let index = start; index <= items.length - (size - chosen.length); index += 1) {
+            collect(index + 1, [...chosen, items[index]]);
+          }
+        }
+        collect(0, []);
+        return result;
+      }
+
+      function evaluateFive(cards) {
+        const values = cards.map((card) => card.value).sort((a, b) => b - a);
+        const counts = new Map();
+        values.forEach((value) => counts.set(value, (counts.get(value) || 0) + 1));
+        const groups = [...counts.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0]);
+        const flush = cards.every((card) => card.suit === cards[0].suit);
+        const unique = [...new Set(values)].sort((a, b) => b - a);
+        let straightHigh = 0;
+        if (unique.length === 5) {
+          if (unique[0] - unique[4] === 4) straightHigh = unique[0];
+          else if (unique.join(",") === "14,5,4,3,2") straightHigh = 5;
+        }
+        if (flush && straightHigh) return { score: [8, straightHigh], category: 8 };
+        if (groups[0][1] === 4) return { score: [7, groups[0][0], groups[1][0]], category: 7 };
+        if (groups[0][1] === 3 && groups[1][1] === 2) return { score: [6, groups[0][0], groups[1][0]], category: 6 };
+        if (flush) return { score: [5, ...values], category: 5 };
+        if (straightHigh) return { score: [4, straightHigh], category: 4 };
+        if (groups[0][1] === 3) return { score: [3, groups[0][0], ...groups.slice(1).map(([value]) => value).sort((a, b) => b - a)], category: 3 };
+        if (groups[0][1] === 2 && groups[1][1] === 2) return { score: [2, Math.max(groups[0][0], groups[1][0]), Math.min(groups[0][0], groups[1][0]), groups[2][0]], category: 2 };
+        if (groups[0][1] === 2) return { score: [1, groups[0][0], ...groups.slice(1).map(([value]) => value).sort((a, b) => b - a)], category: 1 };
+        return { score: [0, ...values], category: 0 };
+      }
+
+      function evaluateHand(cards) {
+        return combinations(cards, 5).map(evaluateFive).reduce((best, hand) => compareScores(hand.score, best.score) > 0 ? hand : best);
+      }
+
+      function compareScores(first, second) {
+        for (let index = 0; index < Math.max(first.length, second.length); index += 1) {
+          const difference = (first[index] || 0) - (second[index] || 0);
+          if (difference) return difference;
+        }
+        return 0;
+      }
+
+      function isSuitedOrConnected(hand) {
+        const values = hand.map((card) => card.value).sort((a, b) => a - b);
+        const connected = values[1] - values[0] === 1 || (values[0] === 2 && values[1] === 14);
+        return hand[0].suit === hand[1].suit || connected;
+      }
+
+      function updateBetLabels() {
+        document.querySelectorAll("[data-bet]").forEach((tile) => {
+          renderBetChips(tile);
+          tile.disabled = !gameStarted || isRevealing;
+          tile.classList.toggle("locked", !gameStarted || isRevealing);
+        });
+        el("undo").disabled = !gameStarted || isRevealing || betActions.length === 0;
+        el("clearBets").disabled = !gameStarted || isRevealing || bets.size === 0;
+      }
+
+      function renderBetChips(tile) {
+        const amount = bets.get(tile.dataset.bet) || 0;
+        const chip = tile.querySelector(".bet-chips");
+        if (!amount) {
+          chip.innerHTML = "";
+          chip.removeAttribute("aria-label");
+          return;
+        }
+        const tier = amountTier(amount);
+        chip.setAttribute("aria-label", `เดิมพัน ${format(amount)} ชิป`);
+        chip.innerHTML = `<span class="bet-chip amount-${tier}" title="เดิมพัน ${format(amount)}">${compactAmount(amount)}</span>`;
+      }
+
+      function renderBetHistory() {
+        document.querySelectorAll("[data-bet]").forEach((tile) => {
+          const type = tile.dataset.bet;
+          const limit = betHistoryLimits[type] || 6;
+          const results = betHistory.get(type) || [];
+          const slots = [...Array(Math.max(0, limit - results.length)).fill(null), ...results];
+          tile.querySelector(".recent-results").innerHTML = slots.map((won, index) => {
+            const isLatest = index === slots.length - 1 && won !== null;
+            const state = won === null ? "" : won ? " win" : " loss";
+            const label = won === null ? "ยังไม่มีผล" : won ? "เข้า" : "ไม่เข้า";
+            return `<span class="recent-dot${state}${isLatest ? " latest" : ""}" title="${label}" aria-label="${label}"></span>`;
+          }).join("");
+        });
+      }
+
+      function placeBet(type) {
+        if (!gameStarted || isRevealing) return;
+        if (chips < selectedChip) {
+          setText("result", "ชิปไม่พอ เพิ่มชิปหรือเลือกจำนวนที่น้อยลง");
+          return;
+        }
+        chips -= selectedChip;
+        bets.set(type, (bets.get(type) || 0) + selectedChip);
+        betActions.push({ type, amount: selectedChip });
+        updateWallet();
+        updateBetLabels();
+      }
+
+      function betWins(type, outcome, leftHand, rightHand, startingHands) {
+        const winningHand = outcome === "left" ? leftHand : outcome === "right" ? rightHand : null;
+        if (type === "LEFT_WIN") return outcome === "left";
+        if (type === "RIGHT_WIN") return outcome === "right";
+        if (type === "TIE") return outcome === "tie";
+        if (type === "ANY_HOLE_SUITED_OR_CONN") return startingHands.some(isSuitedOrConnected);
+        if (type === "ANY_HOLE_PAIR") return startingHands.some((hand) => hand[0].value === hand[1].value);
+        if (type === "ANY_HOLE_AA") return startingHands.some((hand) => hand[0].value === 14 && hand[1].value === 14);
+        if (!winningHand) return false;
+        if (type === "WIN_HIGH_OR_PAIR") return winningHand.category <= 1;
+        if (type === "WIN_TWO_PAIR") return winningHand.category === 2;
+        if (type === "WIN_TRIPS_STRAIGHT_FLUSH") return [3, 4, 5, 8].includes(winningHand.category);
+        if (type === "WIN_FULL_HOUSE") return winningHand.category === 6;
+        if (type === "ANY_FOUR_OR_SF_OR_ROYAL") return winningHand.category >= 7;
+        return false;
+      }
+
+      function recordBetHistory(outcome, leftHand, rightHand, startingHands) {
+        for (const type of betHistory.keys()) {
+          const results = betHistory.get(type);
+          results.push(betWins(type, outcome, leftHand, rightHand, startingHands));
+          const limit = betHistoryLimits[type] || 6;
+          if (results.length > limit) results.shift();
+        }
+        renderBetHistory();
+      }
+
+      function settleBets(outcome, leftHand, rightHand, startingHands) {
+        let returned = 0;
+        for (const [type, amount] of bets) {
+          if (betWins(type, outcome, leftHand, rightHand, startingHands)) returned += amount * betOdds[type];
+        }
+        chips += returned;
+        return returned;
+      }
+
+      function waitForCardReveal() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return Promise.resolve();
+        const animations = [...document.querySelectorAll(".flip-inner")].flatMap((card) => card.getAnimations());
+        return Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)));
+      }
+
+      function deal() {
+        if (!gameStarted || isRevealing) return;
+        isRevealing = true;
+        const deck = shuffle(makeDeck());
+        const left = [deck.pop(), deck.pop()];
+        const right = [deck.pop(), deck.pop()];
+        const board = Array.from({ length: 5 }, () => deck.pop());
+        const leftHand = evaluateHand([...left, ...board]);
+        const rightHand = evaluateHand([...right, ...board]);
+        const comparison = compareScores(leftHand.score, rightHand.score);
+        const outcome = comparison > 0 ? "left" : comparison < 0 ? "right" : "tie";
+        const winnerName = outcome === "left" ? "คาวบอยชนะ" : outcome === "right" ? "กระทิงชนะ" : "เสมอ";
+        lastDeal = { left, right, board, leftHand, rightHand, outcome };
+        renderCards("leftHand", left, false, 0, 105);
+        renderCards("board", board, false, 240, 85);
+        renderCards("rightHand", right, false, 760, 95);
+        setText("leftRank", "กำลังเปิด");
+        setText("rightRank", "กำลังเปิด");
+        setText("result", "กำลังเปิดไพ่...");
+        el("deal").disabled = true;
+        el("deal").textContent = "กำลังเปิดไพ่...";
+        updateBetLabels();
+
+        waitForCardReveal().then(() => {
+          const returned = settleBets(outcome, leftHand, rightHand, [left, right]);
+          round += 1;
+          setText("leftRank", handNames[leftHand.category]);
+          setText("rightRank", handNames[rightHand.category]);
+          setText("result", `${winnerName} · รับชิป ${format(returned)}`);
+          const logEntry = document.createElement("li");
+          logEntry.textContent = `ตา ${round}: ${winnerName}`;
+          el("log").prepend(logEntry);
+          updateWallet();
+          bets.clear();
+          betActions.length = 0;
+          updateBetLabels();
+          window.setTimeout(() => {
+            history.unshift(outcome);
+            history.splice(10);
+            renderHistory();
+            recordBetHistory(outcome, leftHand, rightHand, [left, right]);
+            isRevealing = false;
+            updateBetLabels();
+            el("deal").disabled = false;
+            el("deal").textContent = "เริ่มตาถัดไป";
+          }, 220);
+        });
+      }
+
+      function renderHistory() {
+        const chronological = [...history].reverse();
+        el("history").innerHTML = chronological.map((item, index) => {
+          const latest = index === chronological.length - 1 ? " latest" : "";
+          const label = item === "left" ? "คาวบอย" : item === "right" ? "กระทิง" : "เสมอ";
+          return `<span class="history-dot ${item}${latest}" title="${label}${latest ? " · ล่าสุด" : ""}" aria-label="${label}${latest ? " ผลล่าสุด" : ""}"></span>`;
+        }).join("");
+      }
+
+      document.querySelectorAll("[data-bet]").forEach((tile) => tile.addEventListener("click", () => placeBet(tile.dataset.bet)));
+      document.querySelectorAll("[data-v]").forEach((button) => button.addEventListener("click", () => {
+        selectedChip = Number(button.dataset.v);
+        document.querySelectorAll("[data-v]").forEach((chip) => {
+          const selected = chip === button;
+          chip.classList.toggle("selected", selected);
+          if (selected) chip.style.setProperty("--selected-chip-color", amountChipColor(selectedChip));
+        });
+      }));
+      el("start").addEventListener("click", () => {
+        gameStarted = true;
+        el("startScreen").classList.add("hidden");
+        el("deal").disabled = false;
+        el("deal").textContent = "แจกไพ่ / เปิดผล";
+        setText("result", "เลือกชิปแล้ววางเดิมพัน หรือแจกไพ่ได้เลย");
+        updateBetLabels();
+      });
+      el("deal").addEventListener("click", deal);
+      function requestTopUp(amount) {
+        pendingTopUp = amount;
+        el("topUpForm").reset();
+        setText("topUpError", "");
+        el("topUpDialog").showModal();
+        el("topUpPassword").focus();
+      }
+      el("add1k").addEventListener("click", () => requestTopUp(1000));
+      el("add10k").addEventListener("click", () => requestTopUp(10000));
+      el("topUpForm").addEventListener("submit", (event) => {
+        event.preventDefault();
+        if (el("topUpPassword").value !== "1911") {
+          setText("topUpError", "รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง");
+          el("topUpPassword").value = "";
+          el("topUpPassword").focus();
+          return;
+        }
+        chips += pendingTopUp;
+        updateWallet();
+        pendingTopUp = 0;
+        el("topUpDialog").close();
+      });
+      el("cancelTopUp").addEventListener("click", () => el("topUpDialog").close());
+      el("topUpDialog").addEventListener("close", () => {
+        pendingTopUp = 0;
+        el("topUpForm").reset();
+        setText("topUpError", "");
+      });
+      el("undo").addEventListener("click", () => {
+        const lastBet = betActions.pop();
+        if (!lastBet) return;
+        const { type, amount } = lastBet;
+        chips += amount;
+        const remaining = (bets.get(type) || 0) - amount;
+        if (remaining > 0) bets.set(type, remaining); else bets.delete(type);
+        updateWallet();
+        updateBetLabels();
+      });
+      el("clearBets").addEventListener("click", () => {
+        for (const amount of bets.values()) chips += amount;
+        bets.clear();
+        betActions.length = 0;
+        updateWallet();
+        updateBetLabels();
+      });
+      el("betsJump").addEventListener("click", () => el("zones").scrollIntoView({ behavior: "smooth", block: "center" }));
+      el("historyJump").addEventListener("click", () => el("historyDialog").showModal());
+      el("helpButton").addEventListener("click", () => el("helpDialog").showModal());
+      el("helpOk").addEventListener("click", () => el("helpDialog").close());
+      el("fullscreenButton").addEventListener("click", async () => {
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      });
+
+      renderCards("leftHand", [null, null], true);
+      renderCards("rightHand", [null, null], true);
+      renderBetHistory();
+      updateWallet();
+      updateBetLabels();
+    })();
+  </script>
+</body>
+</html>
