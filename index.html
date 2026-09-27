@@ -696,8 +696,7 @@
       <button class="btn" id="undo" type="button" title="ยกเลิกเดิมพันล่าสุด">↶</button>
       <button class="btn" id="clearBets" type="button">ล้าง</button>
       <button class="btn primary deal-button" id="deal" type="button" disabled>แจกไพ่ / เปิดผล</button>
-      <button class="btn sm" id="add1k" type="button">+1k</button>
-      <button class="btn sm" id="add10k" type="button">+10k</button>
+      <button class="btn sm" id="addChips" type="button">เพิ่มชิป</button>
     </div>
   </footer>
 
@@ -731,8 +730,10 @@
     <h2>เพิ่มชิป</h2>
     <p>ฮั่นแน่ๆๆๆ เงินหมดอะดิ...โคตรไก่</p>
     <form class="top-up-form" id="topUpForm">
+      <label for="topUpAmount">จำนวนเงิน</label>
+      <input id="topUpAmount" type="number" inputmode="numeric" min="1" step="1" required aria-describedby="topUpError">
       <label for="topUpPassword">รหัสผ่าน</label>
-      <input id="topUpPassword" type="password" inputmode="numeric" maxlength="4" autocomplete="off" aria-describedby="topUpError">
+      <input id="topUpPassword" type="password" inputmode="numeric" maxlength="4" autocomplete="off" required aria-describedby="topUpError">
       <p class="top-up-error" id="topUpError" aria-live="polite"></p>
       <div class="top-up-actions">
         <button class="btn" id="cancelTopUp" type="button">ยกเลิก</button>
@@ -789,7 +790,6 @@
       let selectedChip = 50;
       let gameStarted = false;
       let isRevealing = false;
-      let pendingTopUp = 0;
       let round = 0;
       let lastDeal = null;
 
@@ -1045,31 +1045,33 @@
         updateBetLabels();
       });
       el("deal").addEventListener("click", deal);
-      function requestTopUp(amount) {
-        pendingTopUp = amount;
+      function requestTopUp() {
         el("topUpForm").reset();
         setText("topUpError", "");
         el("topUpDialog").showModal();
-        el("topUpPassword").focus();
+        el("topUpAmount").focus();
       }
-      el("add1k").addEventListener("click", () => requestTopUp(1000));
-      el("add10k").addEventListener("click", () => requestTopUp(10000));
+      el("addChips").addEventListener("click", requestTopUp);
       el("topUpForm").addEventListener("submit", (event) => {
         event.preventDefault();
+        const amount = Number(el("topUpAmount").value);
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+          setText("topUpError", "กรุณากรอกจำนวนเงินเป็นจำนวนเต็มบวก");
+          el("topUpAmount").focus();
+          return;
+        }
         if (el("topUpPassword").value !== "1911") {
           setText("topUpError", "รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง");
           el("topUpPassword").value = "";
           el("topUpPassword").focus();
           return;
         }
-        chips += pendingTopUp;
+        chips += amount;
         updateWallet();
-        pendingTopUp = 0;
         el("topUpDialog").close();
       });
       el("cancelTopUp").addEventListener("click", () => el("topUpDialog").close());
       el("topUpDialog").addEventListener("close", () => {
-        pendingTopUp = 0;
         el("topUpForm").reset();
         setText("topUpError", "");
       });
